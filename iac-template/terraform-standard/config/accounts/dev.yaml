@@ -16,5 +16,4 @@ tags:
 
 backend:
   bucket: svc-plus-iac-state
-  key_prefix: dev/
   dynamodb_table: svc-plus-iac-state-dynamodb-lock
