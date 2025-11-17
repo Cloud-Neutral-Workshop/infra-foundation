@@ -1,0 +1,106 @@
+name: Terraform Standard - IAC-Pipeline Account Multi Env Matrix
+
+on:
+  push:
+    paths:
+      - 'iac-template/terraform-standard/envs/dev-vpc/**'
+      - 'iac-template/terraform-standard/envs/dev-role/**'
+      - '.github/workflows/terraform-standard-iac-pipeline-account-matrix.yaml'
+  pull_request:
+    branches: [main]
+
+  workflow_dispatch:
+    inputs:
+      deploy_action:
+        type: choice
+        options: [fmt, lint, plan, apply, destroy]
+        default: plan
+      deploy_dry_run:
+        type: choice
+        options: ['true', 'false']
+        default: 'true'
+
+env:
+  BASE_DIR: iac-template/terraform-standard/envs
+  DEPLOY_ACTION: ${{ github.event.inputs.deploy_action || 'plan' }}
+  DEPLOY_DRY_RUN: ${{ github.event.inputs.deploy_dry_run || 'true' }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+jobs:
+  terraform:
+    name: "${{ matrix.env }} :: ${{ env.DEPLOY_ACTION }}"
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        env:
+          - dev-vpc
+          - dev-role
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: v0.51.0
+
+      - uses: aquasecurity/tfsec-action@v1.0.3
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Run Terraform Action Script
+        working-directory: ${{ env.BASE_DIR }}/${{ matrix.env }}
+        run: |
+          echo "=== 🚀 Terraform Runner ==="
+          echo "ENV: ${{ matrix.env }}"
+          echo "ACTION: $DEPLOY_ACTION"
+          echo "DRY RUN: $DEPLOY_DRY_RUN"
+          echo ""
+
+          case "$DEPLOY_ACTION" in
+            fmt)
+              terraform fmt -check -recursive
+              ;;
+            lint)
+              tflint --init
+              tflint
+              tfsec .
+              ;;
+            plan)
+              terraform init -upgrade
+              terraform plan -no-color > plan_output.txt
+              ;;
+            apply)
+              terraform init -upgrade
+              if [ "$DEPLOY_DRY_RUN" = "false" ]; then
+                terraform apply -auto-approve
+              else
+                echo "[DRY RUN] apply skipped"
+              fi
+              ;;
+            destroy)
+              terraform init -upgrade
+              if [ "$DEPLOY_DRY_RUN" = "false" ]; then
+                terraform destroy -auto-approve
+              else
+                echo "[DRY RUN] destroy skipped"
+              fi
+              ;;
+          esac
+
+      - name: Upload Plan
+        if: ${{ github.event.inputs.deploy_action == 'plan' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan-${{ matrix.env }}
+          path: ${{ env.BASE_DIR }}/${{ matrix.env }}/plan_output.txt
+
