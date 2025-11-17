@@ -1,0 +1,25 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "RootLimitedActions",
+      "Effect": "Deny",
+      "NotAction": [
+        "aws-portal:*",
+        "iam:CreateVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:ListMFADevices",
+        "iam:ResyncMFADevice",
+        "iam:Get*",
+        "iam:List*",
+        "sts:GetCallerIdentity"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:username": "root"
+        }
+      }
+    }
+  ]
+}

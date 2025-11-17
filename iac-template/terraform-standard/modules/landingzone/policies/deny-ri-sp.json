@@ -1,0 +1,33 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyReservedInstancesPurchaseForNonFinOps",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:PurchaseReservedInstancesOffering",
+        "ec2:ModifyReservedInstances"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:PrincipalArn": "arn:aws:iam::<ACCOUNT_ID>:role/FinOpsRole"
+        }
+      }
+    },
+    {
+      "Sid": "DenySavingsPlansPurchaseForNonFinOps",
+      "Effect": "Deny",
+      "Action": [
+        "savingsplans:CreateSavingsPlan",
+        "savingsplans:DeleteQueuedSavingsPlan"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:PrincipalArn": "arn:aws:iam::<ACCOUNT_ID>:role/FinOpsRole"
+        }
+      }
+    }
+  ]
+}

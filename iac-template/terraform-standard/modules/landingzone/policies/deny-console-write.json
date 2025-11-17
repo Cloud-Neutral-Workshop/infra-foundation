@@ -1,0 +1,27 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyWriteActionsForIAMUsers",
+      "Effect": "Deny",
+      "NotAction": [
+        "iam:Get*",
+        "iam:List*",
+        "sts:GetCallerIdentity",
+        "ec2:Describe*",
+        "s3:Get*",
+        "s3:List*",
+        "eks:Describe*",
+        "eks:List*",
+        "cloudwatch:Get*",
+        "cloudwatch:List*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringLike": {
+          "aws:username": "*"
+        }
+      }
+    }
+  ]
+}
