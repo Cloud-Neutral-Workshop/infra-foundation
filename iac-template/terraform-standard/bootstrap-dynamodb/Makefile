@@ -1,13 +1,15 @@
-bootstrap:
+init:
 	terraform init --upgrade
+
+apply: init
 	terraform apply \
 		-var="table_name=svc-plus-iac-state-dynamodb-lock" \
 		-var="region=ap-northeast-1" \
 		-auto-approve
-plan:
+plan: init
 	terraform plan -var="table_name=svc-plus-iac-state-dynamodb-lock" -var="region=ap-northeast-1"
-output:
+output: init
 	terraform output
-destroy:
+destroy: init
 	terraform destroy
 

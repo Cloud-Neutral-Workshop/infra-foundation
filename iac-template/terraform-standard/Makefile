@@ -10,22 +10,20 @@ BOOTSTRAP_IAM_DIR       = bootstrap-iam
 # Bootstrap targets
 # --------------------------------------------
 
-bootstrap: bootstrap-s3 bootstrap-dynamodb bootstrap-iam
+bootstrap-init:
+	make -C $(BOOTSTRAP_S3_DIR) init
+	make -C $(BOOTSTRAP_DYNAMODB_DIR) init
+	make -C $(BOOTSTRAP_IAM_DIR) init
+
+bootstrap-apply:
+	make -C $(BOOTSTRAP_S3_DIR) apply
+	make -C $(BOOTSTRAP_DYNAMODB_DIR) apply
+	make -C $(BOOTSTRAP_IAM_DIR) apply
 	@echo "🎉 All bootstrap modules completed."
-
-bootstrap-s3:
-	make -C $(BOOTSTRAP_S3_DIR) bootstrap
-
-bootstrap-dynamodb:
-	make -C $(BOOTSTRAP_DYNAMODB_DIR) bootstrap
-
-bootstrap-iam:
-	make -C $(BOOTSTRAP_IAM_DIR) bootstrap
 
 # --------------------------------------------
 # Run all bootstraps in order
 # --------------------------------------------
-
 
 bootstrap-plan:
 	make -C $(BOOTSTRAP_S3_DIR) plan
