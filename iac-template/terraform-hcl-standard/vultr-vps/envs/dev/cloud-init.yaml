@@ -1,0 +1,6 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+runcmd:
+  - echo "Hello from Vultr dev environment" > /etc/motd
+  - systemctl enable ssh

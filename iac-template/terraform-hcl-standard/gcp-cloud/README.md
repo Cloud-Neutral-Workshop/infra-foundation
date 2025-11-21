@@ -1,0 +1,32 @@
+# GCP Cloud Terraform Standard
+
+该目录提供与 `aws-cloud` 模板一一对应的 GCP 版本，用于在 GCP 上快速引导基础设施。结构与 AWS 目录保持一致，包括引导阶段 (bootstrap)、环境示例 (envs) 与模块库 (modules)。
+
+## 模板映射
+- **bootstrap-dynamodb → Firestore**：使用 Firestore（Datastore 模式）作为无服务器键值存储。
+- **bootstrap-iam → IAM**：创建基础服务账号与自定义角色，替代 AWS IAM 角色与策略。
+- **bootstrap-s3 → Cloud Storage**：创建 GCS 存储桶并启用版本化，对应 AWS S3。
+- **modules**：保留原始模块命名（alb、nlb、vpc 等），内部实现改为 GCP 资源：
+  - `alb`/`nlb`：使用 Google HTTP(S) / TCP 负载均衡。
+  - `ec2`：映射到 Compute Engine 实例或 MIG。
+  - `keypair`：生成 SSH 密钥并写入元数据。
+  - `msk`：映射到 Pub/Sub（发布/订阅）。
+  - `rds`：映射到 Cloud SQL。
+  - `s3`：映射到 Cloud Storage。
+  - `vpc`：使用 VPC 网络与子网。
+  - `ami_lookup`：映射到最新公共镜像查找（debian/ubuntu）。
+  - `iam`：分配 IAM 角色与绑定。
+  - `landingzone`：创建基础网络、日志与审计配置。
+  - `redis`：映射到 Memorystore。
+  - `sg`：映射到 VPC 防火墙规则。
+
+## 使用方式
+1. 在 `config/backend.tf` 中配置远端状态（GCS 存储桶）。
+2. 在 `config/provider.tf` 中设置 `project`、`region`、`credentials` 等参数。
+3. 按需修改 `envs` 下的环境示例，执行：
+   ```bash
+   terraform -chdir=envs/dev init
+   terraform -chdir=envs/dev apply
+   ```
+
+本目录仅新增 GCP 代码，不改动现有 AWS 模板。
