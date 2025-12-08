@@ -127,6 +127,12 @@ To remove bootstrap resources:
 
 terraform destroy
 
+Resource names (bucket, DynamoDB table, IAM role/user) are defined in config/accounts/bootstrap.yaml. When tearing down the S3 backend, empty the configured bucket with AWS CLI first:
+
+```
+aws s3 rb "s3://$(python -c "import yaml;print(yaml.safe_load(open('config/accounts/bootstrap.yaml'))['state']['bucket_name'])")" --force
+```
+
 
 # Access Key + STS 的执行流程（内部机制）
 

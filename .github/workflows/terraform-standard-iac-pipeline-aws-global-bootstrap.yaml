@@ -42,8 +42,8 @@ jobs:
           - IAM: create Terraform deploy role and automation user for DevOps
           - S3: create remote state bucket (versioned + SSE)
           - DynamoDB: create state lock table for Terraform CRUD workflows
-          
-          This workflow is designed to be re-runnable for create/update/destroy by restoring and uploading module state.
+
+          Resource names and regions follow iac-template/terraform-hcl-standard/aws-cloud/config/accounts/bootstrap.yaml.
           SUMMARY
 
       - uses: hashicorp/setup-terraform@v3
@@ -63,6 +63,28 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_BOOTSTRAP_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_BOOTSTRAP_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-1
+
+      - name: Load bootstrap config for destroy
+        if: matrix.target == 'bootstrap-s3' && env.DEPLOY_ACTION == 'destroy'
+        run: |
+          python -m pip install --quiet pyyaml
+          python - <<'PY'
+          import yaml
+          from pathlib import Path
+
+          cfg_path = Path("iac-template/terraform-hcl-standard/aws-cloud/config/accounts/bootstrap.yaml")
+          cfg = yaml.safe_load(cfg_path.read_text())
+
+          with open("$GITHUB_ENV", "a", encoding="utf-8") as fh:
+            fh.write(f"BOOTSTRAP_BUCKET={cfg['state']['bucket_name']}\n")
+          PY
+
+      - name: Empty bootstrap S3 bucket (per config)
+        if: matrix.target == 'bootstrap-s3' && env.DEPLOY_ACTION == 'destroy'
+        env:
+          AWS_REGION: ap-northeast-1
+        run: |
+          aws s3 rb "s3://${BOOTSTRAP_BUCKET}" --force
 
       - name: Init
         working-directory: ${{ env.TF_WORKDIR }}/${{ matrix.target }}
@@ -93,17 +115,6 @@ jobs:
         with:
           name: outputs-${{ matrix.target }}
           path: iac-template/terraform-hcl-standard/aws-cloud/outputs_${{ matrix.target }}.json
-          retention-days: 30
-
-      - name: Save Terraform state
-        if: env.DEPLOY_ACTION != 'plan'
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfstate-${{ matrix.target }}
-          path: |
-            ${{ env.TF_WORKDIR }}/${{ matrix.target }}/terraform.tfstate
-            ${{ env.TF_WORKDIR }}/${{ matrix.target }}/terraform.tfstate.backup
-          if-no-files-found: ignore
           retention-days: 30
 
   aggregate:
