@@ -1,0 +1,14 @@
+project_id: "modern-app-bootstrap"
+environment: bootstrap
+
+state:
+  bucket_name: svc-plus-iac-state
+  bucket_location: US
+  firestore_location: us-central
+
+iam:
+  service_account_id: terraform-bootstrap
+  service_account_roles:
+    - roles/resourcemanager.projectIamAdmin
+    - roles/storage.admin
+    - roles/compute.admin
