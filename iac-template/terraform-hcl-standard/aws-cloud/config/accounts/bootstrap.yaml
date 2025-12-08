@@ -1,0 +1,16 @@
+region: ap-northeast-1
+environment: bootstrap
+
+account_name: dev
+
+state:
+  bucket_name: svc-plus-iac-state
+  dynamodb_table_name: svc-plus-iac-state-dynamodb-lock
+
+iam:
+  role_name: TerraformDeployRole-Dev
+  terraform_user_name: sit-ci-runner
+
+tags:
+  Owner: Platform
+  Project: modern-container-app

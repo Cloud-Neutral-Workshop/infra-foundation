@@ -12,16 +12,12 @@ on:
     inputs:
       deploy_action:
         type: choice
-        options: [init, plan, apply, destroy]
+        options: [plan, apply, destroy]
         default: plan
-      deploy_dry_run:
-        type: choice
-        options: ['true', 'false']
-        default: 'true'
 
 env:
   TF_WORKDIR: iac-template/terraform-hcl-standard/aws-cloud
-  DRY_RUN: ${{ github.event.inputs.deploy_dry_run || 'true' }}
+  DEPLOY_ACTION: ${{ github.event.inputs.deploy_action || 'plan' }}
 
 jobs:
   bootstrap:
@@ -51,33 +47,37 @@ jobs:
         run: make init
 
       - name: Plan
-        if: env.DRY_RUN == 'true'
+        if: env.DEPLOY_ACTION == 'plan'
         working-directory: ${{ env.TF_WORKDIR }}/${{ matrix.target }}
         run: make plan
 
       - name: Apply
-        if: env.DRY_RUN == 'false'
+        if: env.DEPLOY_ACTION == 'apply'
         working-directory: ${{ env.TF_WORKDIR }}/${{ matrix.target }}
         run: make apply
 
+      - name: Destroy
+        if: env.DEPLOY_ACTION == 'destroy'
+        working-directory: ${{ env.TF_WORKDIR }}/${{ matrix.target }}
+        run: make destroy
+
       - name: Save Outputs
-        if: env.DRY_RUN == 'false'
+        if: env.DEPLOY_ACTION == 'apply'
         working-directory: ${{ env.TF_WORKDIR }}/${{ matrix.target }}
         run: terraform output -json > ../../outputs_${{ matrix.target }}.json
 
       - uses: actions/upload-artifact@v4
-        if: env.DRY_RUN == 'false'
+        if: env.DEPLOY_ACTION == 'apply'
         with:
           name: outputs-${{ matrix.target }}
-          path: iac-template/terraform-standard/outputs_${{ matrix.target }}.json
+          path: iac-template/terraform-hcl-standard/aws-cloud/outputs_${{ matrix.target }}.json
 
   aggregate:
     name: "Aggregate Bootstrap Outputs"
     runs-on: ubuntu-latest
     needs: bootstrap
 
-    # ❗ Job-level 不能用 env.DRY_RUN，要用 github.event.inputs.*
-    if: ${{ github.event.inputs.deploy_dry_run == 'false' }}
+    if: ${{ github.event.inputs.deploy_action == 'apply' }}
 
     steps:
       - uses: actions/download-artifact@v4

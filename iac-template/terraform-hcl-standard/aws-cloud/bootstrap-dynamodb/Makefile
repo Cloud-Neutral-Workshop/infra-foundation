@@ -1,16 +1,20 @@
+table_name ?=
+region ?=
+
+TF_VARS := $(if $(table_name),-var="table_name=$(table_name)") $(if $(region),-var="region=$(region)")
+
 init:
 	terraform init --upgrade
 	terraform init -migrate-state
 
 apply: init
-	terraform apply \
-		-var="table_name=svc-plus-iac-state-dynamodb-lock" \
-		-var="region=ap-northeast-1" \
-		-auto-approve
+	terraform apply $(TF_VARS) -auto-approve
+
 plan: init
-	terraform plan -var="table_name=svc-plus-iac-state-dynamodb-lock" -var="region=ap-northeast-1"
+	terraform plan $(TF_VARS)
+
 output: init
 	terraform output
-destroy: init
-	terraform destroy -var="table_name=svc-plus-iac-state-dynamodb-lock" -var="region=ap-northeast-1"
 
+destroy: init
+	terraform destroy $(TF_VARS)

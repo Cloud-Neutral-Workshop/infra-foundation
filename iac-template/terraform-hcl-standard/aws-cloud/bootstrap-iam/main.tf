@@ -1,21 +1,15 @@
-locals {
-  account = yamldecode(
-    file("${path.root}/../config/accounts/${var.account_name}.yaml")
-  )
-}
-
 #
 # IAM Role: Terraform Deploy Role
 # ----------------------------------------
 resource "aws_iam_role" "terraform_deploy_role" {
-  name = var.role_name
+  name = local.config_role_name
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
       Effect = "Allow"
       Principal = {
-        AWS = "arn:aws:iam::${local.account.account_id}:user/${var.terraform_user_name}"
+        AWS = "arn:aws:iam::${local.account.account_id}:user/${local.config_terraform_user}"
       }
       Action = "sts:AssumeRole"
     }]
@@ -23,10 +17,11 @@ resource "aws_iam_role" "terraform_deploy_role" {
 
   tags = merge(
     {
-      Name        = var.role_name
-      Environment = local.account.environment
+      Name        = local.config_role_name
+      Environment = coalesce(try(local.account.environment, null), local.environment)
     },
-    local.account.tags
+    try(local.account.tags, {}),
+    local.extra_tags
   )
 }
 
@@ -41,14 +36,14 @@ resource "aws_iam_role_policy_attachment" "attach_admin" {
 # IAM User for Terraform (AK/SK)
 # ----------------------------------------
 resource "aws_iam_user" "terraform_user" {
-  name = var.terraform_user_name
+  name = local.config_terraform_user
 }
 
 #
 # IAM User Policy: 最小权限
 # ----------------------------------------
 resource "aws_iam_user_policy" "terraform_user_policy" {
-  name = "${var.terraform_user_name}-iac-policy"
+  name = "${local.config_terraform_user}-iac-policy"
   user = aws_iam_user.terraform_user.name
 
   policy = jsonencode({
@@ -69,7 +64,7 @@ resource "aws_iam_user_policy" "terraform_user_policy" {
         Action = [
           "s3:ListBucket"
         ],
-        Resource = "arn:aws:s3:::svc-plus-iac-state"
+        Resource = "arn:aws:s3:::${local.bootstrap.state.bucket_name}"
       },
       {
         Effect = "Allow",
@@ -78,7 +73,7 @@ resource "aws_iam_user_policy" "terraform_user_policy" {
           "s3:PutObject",
           "s3:DeleteObject"
         ],
-        Resource = "arn:aws:s3:::svc-plus-iac-state/*"
+        Resource = "arn:aws:s3:::${local.bootstrap.state.bucket_name}/*"
       },
 
       # DynamoDB: state lock table
@@ -91,7 +86,7 @@ resource "aws_iam_user_policy" "terraform_user_policy" {
           "dynamodb:UpdateItem",
           "dynamodb:DescribeTable"
         ],
-        Resource = "arn:aws:dynamodb:${var.region}:${local.account.account_id}:table/svc-plus-iac-state-dynamodb-lock"
+        Resource = "arn:aws:dynamodb:${local.config_region}:${local.account.account_id}:table/${local.bootstrap.state.dynamodb_table_name}"
       }
     ]
   })

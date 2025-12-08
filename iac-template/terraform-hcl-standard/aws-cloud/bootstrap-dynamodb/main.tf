@@ -1,5 +1,5 @@
 resource "aws_dynamodb_table" "terraform_locks" {
-  name         = var.table_name
+  name         = local.dynamodb_table_name
   billing_mode = "PAY_PER_REQUEST"
 
   hash_key = "LockID"
@@ -9,8 +9,11 @@ resource "aws_dynamodb_table" "terraform_locks" {
     type = "S"
   }
 
-  tags = {
-    Name        = var.table_name
-    Environment = "bootstrap"
-  }
+  tags = merge(
+    {
+      Name        = local.dynamodb_table_name
+      Environment = local.environment
+    },
+    local.tags
+  )
 }
