@@ -1,5 +1,5 @@
 region: "ap-northeast-1"
-account_id: "730335654753"
+account_id: "950604983695"
 
 landingzone:
   console_mode: "readonly"     # 可选：deny / readonly

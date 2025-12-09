@@ -5,11 +5,11 @@ account_name: xzerolab
 account_id: 950604983695
 
 state:
-  bucket_name: xzerolab-iac-state
-  dynamodb_table_name: xzerolab-iac-state-dynamodb-lock
+  bucket_name: aws-cloud-iac-state
+  dynamodb_table_name: aws-cloud-iac-state-dynamodb-lock
 
 iam:
-  role_name: XzerolabTerraformDeployRole
+  role_name: IacDeployRole
   terraform_user_name: github-ci-runner
 
 tags:
