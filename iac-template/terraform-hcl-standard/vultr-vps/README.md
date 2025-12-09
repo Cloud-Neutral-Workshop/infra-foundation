@@ -10,21 +10,22 @@
 - **RDS (aws_db_instance)** → `vultr_database`：托管数据库（MySQL/PostgreSQL/Redis），支持自动备份与高可用套餐。
 
 ## 目录结构
-- `bootstrap-object-storage/`：初始化 Vultr 对象存储集群与访问密钥，可作为 Terraform 远端状态桶。
-- `bootstrap-iam/`：创建子账号与 SSH Key，实现最小权限访问与实例登录。
-- `config/`：包含通用的 `backend.tf` 与 `provider.tf`，用于配置 S3 兼容后端与 Vultr Provider。
+- `bootstrap/state/`：初始化 Vultr 对象存储集群与访问密钥，可作为 Terraform 远端状态桶。
+- `bootstrap/identity/`：创建子账号与 SSH Key，实现最小权限访问与实例登录。
+- `config/`：保留环境无关的账户与资源配置占位符（accounts/resources）。
+- `templates/`：包含通用的 `backend.tf` 与 `provider.tf`，用于配置 S3 兼容后端与 Vultr Provider。
 - `modules/`：核心模块实现（vpc、compute、storage、iam、data_store），接口与 AWS 模块命名保持一致。
 - `envs/`：示例环境（`dev`）展示如何组合模块。
 
 ## 使用方式
-1. 在 `config/backend.tf` 中填写 Vultr 对象存储的 endpoint、bucket、访问密钥；在 `config/provider.tf` 设置 `vultr_api_key` 与默认 region。
+1. 在 `templates/backend.tf` 中填写 Vultr 对象存储的 endpoint、bucket、访问密钥；在 `templates/provider.tf` 设置 `vultr_api_key` 与默认 region。
 2. 使用引导模板创建状态桶与基础身份：
    ```bash
-   terraform -chdir=bootstrap-object-storage init
-   terraform -chdir=bootstrap-object-storage apply
+   terraform -chdir=bootstrap/state init
+   terraform -chdir=bootstrap/state apply
 
-   terraform -chdir=bootstrap-iam init
-   terraform -chdir=bootstrap-iam apply
+   terraform -chdir=bootstrap/identity init
+   terraform -chdir=bootstrap/identity apply
    ```
 3. 根据需要复制 `envs/dev`，调整变量后运行：
    ```bash

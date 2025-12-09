@@ -8,8 +8,9 @@ It creates:
 
 Both modules can be run independently.
 
-- bootstrap-s3/           # S3 state bucket (versioning + SSE)
-- bootstrap-dynamodb/     # DynamoDB lock table (LockID)
+- bootstrap/state/        # S3 state bucket (versioning + SSE)
+- bootstrap/lock/         # DynamoDB lock table (LockID)
+- bootstrap/identity/     # IAM roles, policies and bootstrap users
 
 ---
 ** Note: S3 bucket must be emptied before deletion. **
@@ -46,7 +47,7 @@ Select profile if needed: export AWS_PROFILE=default
 ## 2. Bootstrap: Create S3 Bucket
 
 ```
-cd bootstrap-s3
+cd bootstrap/state
 terraform init
 terraform apply \
   -var="bucket_name=svc-plus-iac-state" \
@@ -61,7 +62,7 @@ This creates:
 ## 3. Bootstrap: Create DynamoDB Lock Table
 
 ```
-cd bootstrap-dynamo-db
+cd bootstrap/lock
 terraform init
 terraform plan \
   -var="region=ap-northeast-1" \
@@ -82,7 +83,7 @@ PAY_PER_REQUEST billing mode Compatible with Terraform backend locking
 ## 4. Bootstrap IAM Role
 
 ```
-cd bootstrap-iam
+cd bootstrap/identity
 terraform init
 terraform apply \
   -var="account_name=dev" \

@@ -2,9 +2,10 @@
 # Root Makefile - orchestrate bootstrap modules
 # ---------------------------------------------------------
 
-BOOTSTRAP_S3_DIR        = bootstrap-s3
-BOOTSTRAP_DYNAMODB_DIR  = bootstrap-dynamodb
-BOOTSTRAP_IAM_DIR       = bootstrap-iam
+AWS_BOOTSTRAP_DIR       = aws-cloud/bootstrap
+BOOTSTRAP_S3_DIR        = $(AWS_BOOTSTRAP_DIR)/state
+BOOTSTRAP_DYNAMODB_DIR  = $(AWS_BOOTSTRAP_DIR)/lock
+BOOTSTRAP_IAM_DIR       = $(AWS_BOOTSTRAP_DIR)/identity
 
 # --------------------------------------------
 # Bootstrap targets
