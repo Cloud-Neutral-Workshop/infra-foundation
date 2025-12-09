@@ -1,4 +1,4 @@
-project_id: "modern-app-dev"
+project_id: "xzerolab-480008"
 project_number: "123456789012"
 name: dev
 environment: dev
@@ -12,8 +12,7 @@ labels:
   environment: dev
   owner: Platform
   costcenter: "DEV"
-  project: "modern-container-app"
+  Project: CloudNeutral
 
 backend:
-  bucket: svc-plus-iac-state
-  prefix: gcp/dev
+  bucket: gcp-cloud-iac-state
