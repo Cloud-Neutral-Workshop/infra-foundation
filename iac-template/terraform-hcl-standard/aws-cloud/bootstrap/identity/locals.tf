@@ -1,5 +1,5 @@
 locals {
-  bootstrap = yamldecode(file("${path.module}/../../config/accounts/bootstrap.yaml"))
+  bootstrap = yamldecode(file(abspath(var.bootstrap_config_path)))
 
   config_account_name   = coalesce(var.account_name, local.bootstrap.account_name)
   config_region         = coalesce(var.region, local.bootstrap.region)

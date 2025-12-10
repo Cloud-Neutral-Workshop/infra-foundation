@@ -9,3 +9,9 @@ variable "region" {
   type        = string
   default     = null
 }
+
+variable "bootstrap_config_path" {
+  description = "Path to the bootstrap account configuration YAML"
+  type        = string
+  default     = "../../config/accounts/bootstrap.yaml"
+}
