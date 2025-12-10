@@ -9,3 +9,9 @@ variable "region" {
   type        = string
   default     = null
 }
+
+variable "bootstrap" {
+  description = "Bootstrap configuration provided by Terragrunt"
+  type        = map(any)
+  default     = {}
+}

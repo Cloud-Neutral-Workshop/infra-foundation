@@ -24,4 +24,5 @@ terraform {
 
 inputs = {
   region = dependency.state.outputs.region
+  bootstrap = local.bootstrap_config
 }

@@ -1,10 +1,10 @@
 locals {
-  bootstrap = yamldecode(file("${path.module}/../../config/accounts/bootstrap.yaml"))
+  bootstrap = var.bootstrap
 
-  config_account_name   = coalesce(var.account_name, local.bootstrap.account_name)
-  config_region         = coalesce(var.region, local.bootstrap.region)
-  config_role_name      = coalesce(var.role_name, local.bootstrap.iam.role_name)
-  config_terraform_user = coalesce(var.terraform_user_name, local.bootstrap.iam.terraform_user_name)
+  config_account_name   = coalesce(var.account_name, try(local.bootstrap.account_name, null))
+  config_region         = coalesce(var.region, try(local.bootstrap.region, null))
+  config_role_name      = coalesce(var.role_name, try(local.bootstrap.iam.role_name, null))
+  config_terraform_user = coalesce(var.terraform_user_name, try(local.bootstrap.iam.terraform_user_name, null))
   environment           = coalesce(try(local.bootstrap.environment, null), try(local.bootstrap.iam.environment, null), "bootstrap")
   extra_tags            = try(local.bootstrap.tags, {})
 
@@ -15,9 +15,8 @@ locals {
 }
 
 locals {
-  account_file_path = "${path.module}/../../../config/accounts/${local.config_account_name}.yaml"
-  account = fileexists(local.account_file_path) ? yamldecode(file(local.account_file_path)) : {
-    account_id  = local.bootstrap.account_id
+  account = length(var.account) > 0 ? var.account : {
+    account_id  = try(local.bootstrap.account_id, null)
     environment = local.environment
     tags        = local.extra_tags
   }

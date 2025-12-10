@@ -73,3 +73,15 @@ variable "state_lock_table_name" {
   type        = string
   default     = null
 }
+
+variable "bootstrap" {
+  description = "Bootstrap configuration provided by Terragrunt"
+  type        = map(any)
+  default     = {}
+}
+
+variable "account" {
+  description = "Resolved account configuration provided by Terragrunt"
+  type        = map(any)
+  default     = {}
+}

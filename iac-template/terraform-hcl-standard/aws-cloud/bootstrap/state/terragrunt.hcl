@@ -14,4 +14,5 @@ terraform {
 inputs = {
   bucket_name = local.bootstrap_config.state.bucket_name
   region      = local.bootstrap_config.region
+  bootstrap   = local.bootstrap_config
 }
