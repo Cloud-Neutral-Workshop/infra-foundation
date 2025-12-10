@@ -1,5 +1,5 @@
 locals {
-  bootstrap = yamldecode(file("${path.root}/../../config/accounts/bootstrap.yaml"))
+  bootstrap = yamldecode(file("${path.module}/../../config/accounts/bootstrap.yaml"))
 
   config_account_name     = coalesce(var.account_name, local.bootstrap.account_name)
   config_region           = coalesce(var.region, local.bootstrap.region)
@@ -10,7 +10,7 @@ locals {
 }
 
 locals {
-  account_file_path = "${path.root}/../../../config/accounts/${local.config_account_name}.yaml"
+  account_file_path = "${path.module}/../../../config/accounts/${local.config_account_name}.yaml"
   account = fileexists(local.account_file_path) ? yamldecode(file(local.account_file_path)) : {
     account_id  = local.bootstrap.account_id
     environment = local.environment

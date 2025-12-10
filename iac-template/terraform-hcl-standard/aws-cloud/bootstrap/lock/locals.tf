@@ -1,5 +1,5 @@
 locals {
-  bootstrap = yamldecode(file("${path.root}/../../config/accounts/bootstrap.yaml"))
+  bootstrap = yamldecode(file("${path.module}/../../config/accounts/bootstrap.yaml"))
 
   dynamodb_table_name = coalesce(var.table_name, local.bootstrap.state.dynamodb_table_name)
   region              = coalesce(var.region, local.bootstrap.region)
