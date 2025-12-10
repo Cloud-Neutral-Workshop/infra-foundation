@@ -1,4 +1,5 @@
 resource "aws_s3_bucket" "state" {
+  count  = var.create_bucket ? 1 : 0
   bucket = local.bucket_name
 
   tags = merge(
@@ -10,8 +11,14 @@ resource "aws_s3_bucket" "state" {
   )
 }
 
+data "aws_s3_bucket" "existing" {
+  count  = var.create_bucket ? 0 : 1
+  bucket = local.bucket_name
+}
+
 resource "aws_s3_bucket_versioning" "versioning" {
-  bucket = aws_s3_bucket.state.id
+  count  = var.create_bucket ? 1 : 0
+  bucket = local.bucket_id
 
   versioning_configuration {
     status = "Enabled"
@@ -19,7 +26,8 @@ resource "aws_s3_bucket_versioning" "versioning" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "sse" {
-  bucket = aws_s3_bucket.state.id
+  count  = var.create_bucket ? 1 : 0
+  bucket = local.bucket_id
 
   rule {
     apply_server_side_encryption_by_default {
@@ -29,7 +37,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "sse" {
 }
 
 resource "aws_s3_bucket_public_access_block" "block" {
-  bucket = aws_s3_bucket.state.id
+  count  = var.create_bucket ? 1 : 0
+  bucket = local.bucket_id
 
   block_public_acls       = true
   block_public_policy     = true
