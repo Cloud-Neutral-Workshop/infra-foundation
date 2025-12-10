@@ -61,3 +61,15 @@ variable "create_user" {
     error_message = "existing_user_name must be provided when create_user is false."
   }
 }
+
+variable "state_bucket_name" {
+  description = "Name of the Terraform state bucket (overrides bootstrap config when provided)"
+  type        = string
+  default     = null
+}
+
+variable "state_lock_table_name" {
+  description = "Name of the DynamoDB state lock table (overrides bootstrap config when provided)"
+  type        = string
+  default     = null
+}

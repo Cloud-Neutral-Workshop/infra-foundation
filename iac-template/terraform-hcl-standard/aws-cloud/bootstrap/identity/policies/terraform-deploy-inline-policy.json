@@ -1,0 +1,75 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "BootstrapStateBucketManagement",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:GetBucketLocation",
+        "s3:ListBucket",
+        "s3:PutBucketVersioning",
+        "s3:PutBucketPolicy",
+        "s3:PutBucketTagging",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutBucketPublicAccessBlock"
+      ],
+      "Resource": "arn:aws:s3:::${bucket_name}"
+    },
+    {
+      "Sid": "BootstrapStateObjectAccess",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:PutObjectTagging"
+      ],
+      "Resource": "arn:aws:s3:::${bucket_name}/*"
+    },
+    {
+      "Sid": "TerraformLockTable",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:CreateTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:UpdateTable",
+        "dynamodb:TagResource",
+        "dynamodb:UntagResource"
+      ],
+      "Resource": "arn:aws:dynamodb:${region}:${account_id}:table/${table_name}"
+    },
+    {
+      "Sid": "BootstrapIamRoleLifecycle",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetRole",
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:TagRole",
+        "iam:UntagRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::${account_id}:role/${role_name}",
+        "arn:aws:iam::${account_id}:role/bootstrap-*",
+        "arn:aws:iam::${account_id}:role/terraform-*"
+      ]
+    },
+    {
+      "Sid": "BootstrapIamRolePolicies",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy"
+      ],
+      "Resource": [
+        "arn:aws:iam::${account_id}:role/${role_name}",
+        "arn:aws:iam::${account_id}:role/bootstrap-*",
+        "arn:aws:iam::${account_id}:role/terraform-*"
+      ]
+    }
+  ]
+}

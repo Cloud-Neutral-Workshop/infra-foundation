@@ -17,21 +17,18 @@ on:
     inputs:
       deploy_action:
         type: choice
-        options: [plan, apply, destroy]
+        options: [plan, apply]
         default: plan
 
 env:
-  TF_WORKDIR: iac-template/terraform-hcl-standard/aws-cloud
+  TG_ROOT: iac-template/terraform-hcl-standard/aws-cloud/bootstrap
   DEPLOY_ACTION: ${{ github.event.inputs.deploy_action || 'plan' }}
+  TG_VERSION: 0.67.14
 
 jobs:
   bootstrap:
     name: "Bootstrap Modules"
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        target: [bootstrap/state/, bootstrap/lock, bootstrap/identity]
 
     steps:
       - uses: actions/checkout@v4
@@ -41,22 +38,20 @@ jobs:
           cat <<'SUMMARY' >> "$GITHUB_STEP_SUMMARY"
           ## Bootstrap scope
           - IAM: create Terraform deploy role and automation user for DevOps
-          - S3: create remote state bucket (versioned + SSE)
-          - DynamoDB: create state lock table for Terraform CRUD workflows
+          - S3: create remote state bucket (versioned + SSE + public access block)
+          - DynamoDB: create state lock table with encryption + PITR
 
-          Resource names and regions follow iac-template/terraform-hcl-standard/aws-cloud/config/accounts/bootstrap.yaml.
+          Terragrunt orchestrates state → lock → identity. Resource names and regions follow iac-template/terraform-hcl-standard/aws-cloud/config/accounts/bootstrap.yaml.
           SUMMARY
 
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.5
 
-      - name: Restore Terraform state
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: tfstate-${{ matrix.target }}
-          path: ${{ env.TF_WORKDIR }}/${{ matrix.target }}
+      - name: Install Terragrunt
+        run: |
+          curl -L "https://github.com/gruntwork-io/terragrunt/releases/download/v${TG_VERSION}/terragrunt_linux_amd64" -o terragrunt
+          sudo install terragrunt /usr/local/bin/terragrunt
 
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -65,97 +60,28 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_BOOTSTRAP_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-1
 
-      - name: Init
-        working-directory: ${{ env.TF_WORKDIR }}/${{ matrix.target }}
-        run: make init
-
-      - name: Plan
+      - name: Terragrunt Plan
         if: env.DEPLOY_ACTION == 'plan'
-        working-directory: ${{ env.TF_WORKDIR }}/${{ matrix.target }}
-        run: make plan
+        working-directory: ${{ env.TG_ROOT }}
+        run: terragrunt run-all plan --terragrunt-non-interactive
 
-      - name: Apply
+      - name: Terragrunt Apply
         if: env.DEPLOY_ACTION == 'apply'
-        working-directory: ${{ env.TF_WORKDIR }}/${{ matrix.target }}
-        run: make apply
-
-      - name: Load bootstrap config for destroy
-        if: env.DEPLOY_ACTION == 'destroy'
-        run: |
-          python -m pip install --quiet pyyaml
-          python - <<'PY'
-          import yaml
-          import os
-          from pathlib import Path
-
-          cfg_path = Path("iac-template/terraform-hcl-standard/aws-cloud/config/accounts/bootstrap.yaml")
-          cfg = yaml.safe_load(cfg_path.read_text())
-
-          env_path = Path(os.environ["GITHUB_ENV"])
-          current_env = env_path.read_text() if env_path.exists() else ""
-          env_path.write_text(
-              current_env
-              + f"BOOTSTRAP_BUCKET={cfg['state']['bucket_name']}\n"
-              + f"BOOTSTRAP_REGION={cfg['region']}\n"
-              + f"BOOTSTRAP_DYNAMODB_TABLE={cfg['state']['dynamodb_table_name']}\n"
-              + f"BOOTSTRAP_ROLE_NAME={cfg['iam']['role_name']}\n"
-              + f"BOOTSTRAP_TERRAFORM_USER={cfg['iam']['terraform_user_name']}\n"
-          )
-          PY
-
-      - name: Destroy
-        if: env.DEPLOY_ACTION == 'destroy'
-        working-directory: ${{ env.TF_WORKDIR }}/${{ matrix.target }}
-        env:
-          AWS_REGION: ${{ env.BOOTSTRAP_REGION }}
-        run: |
-          if [ "${{ matrix.target }}" = "bootstrap-s3" ]; then
-            make destroy bucket_name=${BOOTSTRAP_BUCKET} region=${BOOTSTRAP_REGION}
-          elif [ "${{ matrix.target }}" = "bootstrap-dynamodb" ]; then
-            make destroy table_name=${BOOTSTRAP_DYNAMODB_TABLE} region=${BOOTSTRAP_REGION}
-          else
-            make destroy role_name=${BOOTSTRAP_ROLE_NAME} terraform_user_name=${BOOTSTRAP_TERRAFORM_USER}
-          fi
+        working-directory: ${{ env.TG_ROOT }}
+        run: terragrunt run-all apply --terragrunt-non-interactive
 
       - name: Save Outputs
         if: env.DEPLOY_ACTION == 'apply'
-        working-directory: ${{ env.TF_WORKDIR }}/${{ matrix.target }}
-        run: terraform output -json > ../../outputs_${{ matrix.target }}.json
+        working-directory: ${{ env.TG_ROOT }}
+        run: |
+          mkdir -p outputs
+          for dir in state lock identity; do
+            terragrunt output -json --terragrunt-working-dir $dir > outputs/${dir}.json
+          done
 
       - uses: actions/upload-artifact@v4
         if: env.DEPLOY_ACTION == 'apply'
         with:
-          name: outputs-${{ matrix.target }}
-          path: iac-template/terraform-hcl-standard/aws-cloud/outputs_${{ matrix.target }}.json
+          name: bootstrap-outputs
+          path: ${{ env.TG_ROOT }}/outputs
           retention-days: 30
-
-  aggregate:
-    name: "Aggregate Bootstrap Outputs"
-    runs-on: ubuntu-latest
-    needs: bootstrap
-
-    if: ${{ github.event.inputs.deploy_action == 'apply' }}
-
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: ./outputs
-
-      - name: Merge Outputs
-        run: |
-          shopt -s globstar nullglob
-          echo "{" > final_bootstrap_outputs.json
-          f=true
-          for x in outputs/**/outputs_*.json; do
-            k=$(basename $x .json | sed 's/outputs_//')
-            [ "$f" = true ] && f=false || echo "," >> final_bootstrap_outputs.json
-            echo "\"$k\": $(cat $x)" >> final_bootstrap_outputs.json
-          done
-          echo "}" >> final_bootstrap_outputs.json
-
-      - run: cat final_bootstrap_outputs.json
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: bootstrap-final-output
-          path: final_bootstrap_outputs.json
