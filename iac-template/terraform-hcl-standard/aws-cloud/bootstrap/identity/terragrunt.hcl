@@ -3,7 +3,8 @@ include "root" {
 }
 
 locals {
-  bootstrap_config = include.root.locals.bootstrap_config
+  root_config      = read_terragrunt_config(find_in_parent_folders())
+  bootstrap_config = local.root_config.locals.bootstrap_config
 }
 
 dependency "state" {
