@@ -13,6 +13,10 @@ on:
         options: ['true', 'false']
         default: 'true'
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   BASE_DIR: iac-template/terraform-hcl-standard/aws-cloud/component
   AWS_REGION: ap-northeast-1
@@ -46,11 +50,9 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           role-session-name: github-actions
-          role-chaining: true
           role-skip-session-tagging: true
 
       - name: Init
