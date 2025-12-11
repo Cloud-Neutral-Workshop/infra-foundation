@@ -1,15 +1,15 @@
 render:
 	python ../../render_provider_backend.py
 
-init:
+init: render
 	terraform init --upgrade
 
-plan:
+plan: init
 	terraform plan
 
-apply:
+apply: init
 	terraform apply -auto-approve
 
-destroy:
+destroy: init
 	terraform destroy -auto-approve
 
