@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "${oidc_provider_arn}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:sub": "repo:cloud-neutral-toolkit/Modern-Container-Application-Reference-Architecture:ref:refs/heads/main",
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        }
+      }
+    }
+  ]
+}
