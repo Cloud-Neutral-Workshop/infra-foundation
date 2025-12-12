@@ -19,6 +19,16 @@ Both modules can be run independently.
 
 Terraform reads AWS credentials through the standard AWS credential chain. You may use either A or B.
 
+If your shell or CI job is **already running under the target IAM role**, set
+`AWS_CLOUD_SKIP_ASSUME_ROLE=true` before rendering/running Terraform to avoid a
+nested `AssumeRole` call:
+
+```
+export AWS_CLOUD_SKIP_ASSUME_ROLE=true
+```
+
+This prevents errors like `AccessDenied` when re-assuming the same deploy role.
+
 ### A. Environment Variables (recommended for local / CI)
 
 ```

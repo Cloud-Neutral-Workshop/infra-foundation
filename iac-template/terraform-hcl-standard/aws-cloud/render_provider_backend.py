@@ -19,10 +19,17 @@ sys.path.append(str(PROJECT_ROOT / "utils"))
 from config_loader import load_merged_config  # noqa: E402
 
 
+def _should_skip_assume_role() -> bool:
+    flag = os.environ.get("AWS_CLOUD_SKIP_ASSUME_ROLE", "").strip().lower()
+    return flag in {"1", "true", "yes", "y"}
+
+
 def build_provider_config(module_name: str, module_config: Dict, account_config: Dict, defaults: Dict) -> Dict:
     region = module_config.get("region") or account_config.get("region")
     if not region:
         raise ValueError(f"Region is required for module {module_name}")
+
+    assume_role_arn = None if _should_skip_assume_role() else account_config.get("role_to_assume")
 
     return {
         "terraform": {
@@ -33,7 +40,7 @@ def build_provider_config(module_name: str, module_config: Dict, account_config:
         },
         "region": region,
         "assume_role_arn": module_config.get("assume_role_arn")
-        or account_config.get("role_to_assume"),
+        or assume_role_arn,
         "session_name": module_config.get("session_name")
         or defaults.get("session_name", "TerraformSession"),
     }
