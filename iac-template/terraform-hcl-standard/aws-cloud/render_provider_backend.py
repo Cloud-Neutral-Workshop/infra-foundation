@@ -19,62 +19,19 @@ sys.path.append(str(PROJECT_ROOT / "utils"))
 from config_loader import load_merged_config  # noqa: E402
 
 
-def _should_skip_assume_role() -> bool:
-    flag = os.environ.get("AWS_CLOUD_SKIP_ASSUME_ROLE", "").strip().lower()
-    return flag in {"1", "true", "yes", "y"}
+def merge_var(config_files: list[str | Path]) -> Dict:
+    if not config_files:
+        raise ValueError("At least one config file is required")
 
+    config_inputs: list[str] = []
+    for config_file in config_files:
+        path = Path(config_file)
+        if not path.is_absolute():
+            path = CONFIG_DIR / path
+        if not path.exists():
+            raise FileNotFoundError(f"Config file not found: {path}")
+        config_inputs.append(str(path))
 
-def build_provider_config(module_name: str, module_config: Dict, account_config: Dict, defaults: Dict) -> Dict:
-    region = module_config.get("region") or account_config.get("region")
-    if not region:
-        raise ValueError(f"Region is required for module {module_name}")
-
-    assume_role_arn = None if _should_skip_assume_role() else account_config.get("role_to_assume")
-
-    return {
-        "terraform": {
-            "required_version": module_config.get("terraform_required_version")
-            or defaults.get("terraform_required_version", ">= 1.2"),
-            "aws_provider_version": module_config.get("aws_provider_version")
-            or defaults.get("aws_provider_version", "~> 5.92.0"),
-        },
-        "region": region,
-        "assume_role_arn": module_config.get("assume_role_arn")
-        or assume_role_arn,
-        "session_name": module_config.get("session_name")
-        or defaults.get("session_name", "TerraformSession"),
-    }
-
-
-def build_backend_config(module_name: str, module_config: Dict, account_config: Dict) -> Dict:
-    backend_overrides = module_config.get("backend", {})
-    backend_bucket = backend_overrides.get("bucket") or account_config.get("backend", {}).get(
-        "bucket"
-    )
-    dynamodb_table = backend_overrides.get("dynamodb_table") or account_config.get(
-        "backend", {}
-    ).get("dynamodb_table")
-    backend_key = backend_overrides.get("key")
-    backend_region = backend_overrides.get("region") or account_config.get("region")
-
-    if not backend_bucket:
-        raise ValueError(f"Backend bucket is required for module {module_name}")
-    if not backend_key:
-        raise ValueError(f"Backend key is required for module {module_name}")
-    if not backend_region:
-        raise ValueError(f"Backend region is required for module {module_name}")
-
-    return {
-        "bucket": backend_bucket,
-        "key": backend_key,
-        "region": backend_region,
-        "dynamodb_table": dynamodb_table,
-    }
-
-
-def load_account_config(account_name: str, additional_inputs: list[str] | None = None) -> Dict:
-    account_config_path = CONFIG_DIR / "accounts" / f"{account_name}.yaml"
-    config_inputs = [str(account_config_path)] + [str(CONFIG_DIR / path) for path in additional_inputs or []]
     return load_merged_config(config_inputs)
 
 
@@ -90,9 +47,13 @@ def detect_target_component() -> str | None:
 
 
 def render_templates():
-    provider_backend_cfg = load_merged_config(CONFIG_DIR / "provider_backend.yaml")
-    defaults = provider_backend_cfg.get("defaults", {})
-    modules = provider_backend_cfg.get("modules", {})
+    config_files = sys.argv[1:] or [CONFIG_DIR / "provider_backend.yaml"]
+    provider_backend_cfg = merge_var(config_files)
+    defaults = provider_backend_cfg.get("defaults") or {}
+    modules = provider_backend_cfg.get("modules") or {}
+
+    if not modules:
+        raise ValueError("No modules found in configuration")
 
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), keep_trailing_newline=True)
     provider_template = env.get_template("provider.tf.j2")
@@ -116,12 +77,57 @@ def render_templates():
         if not account_name:
             raise ValueError(f"Account is required for module {module_name}")
 
-        account_config = load_account_config(account_name, module_config.get("config_inputs"))
+        account_config_inputs = [CONFIG_DIR / "accounts" / f"{account_name}.yaml"]
+        account_config_inputs.extend(
+            CONFIG_DIR / path for path in module_config.get("config_inputs", [])
+        )
+        account_config = merge_var(account_config_inputs)
 
-        provider_config = build_provider_config(module_name, module_config, account_config, defaults)
-        backend_config = build_backend_config(module_name, module_config, account_config)
+        region = module_config.get("region") or account_config.get("region")
+        if not region:
+            raise ValueError(f"Region is required for module {module_name}")
 
-        provider_content = provider_template.render(provider=provider_config)
+        tf_version = module_config.get("terraform_required_version") or defaults.get(
+            "terraform_required_version"
+        )
+        aws_provider_version = module_config.get("aws_provider_version") or defaults.get(
+            "aws_provider_version"
+        )
+        if not tf_version:
+            raise ValueError(f"Terraform required_version is required for module {module_name}")
+        if not aws_provider_version:
+            raise ValueError(f"AWS provider version is required for module {module_name}")
+
+        backend_overrides = module_config.get("backend", {})
+        backend_bucket = backend_overrides.get("bucket") or account_config.get("backend", {}).get(
+            "bucket"
+        )
+        backend_key = backend_overrides.get("key")
+        backend_region = backend_overrides.get("region") or account_config.get("region")
+        dynamodb_table = backend_overrides.get("dynamodb_table") or account_config.get(
+            "backend", {}
+        ).get("dynamodb_table")
+
+        if not backend_bucket:
+            raise ValueError(f"Backend bucket is required for module {module_name}")
+        if not backend_key:
+            raise ValueError(f"Backend key is required for module {module_name}")
+        if not backend_region:
+            raise ValueError(f"Backend region is required for module {module_name}")
+
+        provider_config = {
+            "TF_VERSION": tf_version,
+            "AWS_provider_version": aws_provider_version,
+            "region": region,
+        }
+        backend_config = {
+            "bucket": backend_bucket,
+            "key": backend_key,
+            "region": backend_region,
+            "dynamodb_table": dynamodb_table,
+        }
+
+        provider_content = provider_template.render(**provider_config)
         backend_content = backend_template.render(backend=backend_config)
 
         (module_dir / "provider.tf").write_text(provider_content, encoding="utf-8")
