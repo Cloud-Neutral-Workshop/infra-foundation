@@ -1,5 +1,0 @@
-alicloud:
-  region: cn-hangzhou
-  default_tags:
-    project: landingzone-mvp
-    owner: your-github-handle
