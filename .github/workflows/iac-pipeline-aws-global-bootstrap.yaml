@@ -16,11 +16,25 @@ on:
         type: choice
         options: [plan, apply, destroy]
         default: plan
+      gitops_repo_ref:
+        description: "GitOps repo ref (branch/tag/sha) to use"
+        type: string
+        default: main
+      gitops_repo_name:
+        description: "GitOps repository (URL or owner/repo)"
+        type: string
+        default: https://github.com/cloud-neutral-workshop/gitops.git
+      gitops_bootstrap_config:
+        description: "Path to bootstrap config file within the GitOps repo"
+        type: string
+        default: config/xzerolab/sit/aws-cloud/account/bootstrap.yaml
 
 env:
   TG_ROOT: terraform-hcl-standard/aws-cloud/bootstrap
   DEPLOY_ACTION: ${{ github.event.inputs.deploy_action || 'plan' }}
   TG_VERSION: 0.67.14
+  GITOPS_REPO_ROOT: gitops
+  GITOPS_BOOTSTRAP_CONFIG: ${{ github.event.inputs.gitops_bootstrap_config || 'config/xzerolab/sit/aws-cloud/account/bootstrap.yaml' }}
 
 jobs:
   bootstrap:
@@ -29,6 +43,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Checkout GitOps config
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ replace(replace(github.event.inputs.gitops_repo_name || 'https://github.com/cloud-neutral-workshop/gitops.git', 'https://github.com/', ''), '.git', '') }}
+          path: ${{ env.GITOPS_REPO_ROOT }}
+          ref: ${{ github.event.inputs.gitops_repo_ref || 'main' }}
 
       - name: Document Bootstrap Scope
         run: |

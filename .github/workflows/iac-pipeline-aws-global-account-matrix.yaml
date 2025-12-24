@@ -13,6 +13,14 @@ on:
         type: choice
         options: [plan, apply, destroy]
         default: plan
+      gitops_repo_name:
+        description: "GitOps repository (URL or owner/repo)"
+        type: string
+        default: https://github.com/cloud-neutral-workshop/gitops.git
+      gitops_repo_ref:
+        description: "GitOps repo ref (branch/tag/sha) to use"
+        type: string
+        default: main
 
 permissions:
   id-token: write
@@ -25,6 +33,8 @@ env:
   CONFIG_FILES: |
     gitops/xzerolab/sit/aws-cloud/account/bootstrap.yaml
     gitops/xzerolab/sit/aws-cloud/resources/vpc.yaml
+  GITOPS_REPO_ROOT: gitops
+  GITOPS_BOOTSTRAP_CONFIG: gitops/xzerolab/sit/aws-cloud/account/bootstrap.yaml
 
 jobs:
   terraform:
@@ -44,8 +54,9 @@ jobs:
       - name: Checkout GitOps config
         uses: actions/checkout@v4
         with:
-          repository: cloud-neutral-workshop/gitops
-          path: gitops
+          repository: ${{ replace(replace(github.event.inputs.gitops_repo_name || 'https://github.com/cloud-neutral-workshop/gitops.git', 'https://github.com/', ''), '.git', '') }}
+          path: ${{ env.GITOPS_REPO_ROOT }}
+          ref: ${{ github.event.inputs.gitops_repo_ref || 'main' }}
 
       - uses: hashicorp/setup-terraform@v3
         with:
