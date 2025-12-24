@@ -7,8 +7,8 @@ concurrency:
 on:
   push:
     paths:
-      - 'iac-template/terraform-hcl-standard/vultr-vps/modules/vpc/**'
-      - 'iac-template/terraform-hcl-standard/vultr-vps/config/**'
+      - 'terraform-hcl-standard/vultr-vps/modules/vpc/**'
+      - 'terraform-hcl-standard/vultr-vps/config/**'
       - '.github/workflows/terraform-standard-iac-pipeline-vultr-global-landingzone-baseline.yaml'
   workflow_dispatch:
     inputs:
@@ -19,7 +19,7 @@ on:
         default: plan
 
 env:
-  TF_ROOT: iac-template/terraform-hcl-standard/vultr-vps/modules/vpc
+  TF_ROOT: terraform-hcl-standard/vultr-vps/modules/vpc
   DEPLOY_ACTION: ${{ github.event.inputs.deploy_action || 'plan' }}
 
 jobs:

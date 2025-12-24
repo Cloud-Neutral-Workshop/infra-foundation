@@ -9,7 +9,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/iac-pipeline-aws-global-bootstrap.yaml'
-      - 'iac-template/terraform-hcl-standard/aws-cloud/bootstrap/**'
+      - 'terraform-hcl-standard/aws-cloud/bootstrap/**'
   workflow_dispatch:
     inputs:
       deploy_action:
@@ -18,7 +18,7 @@ on:
         default: plan
 
 env:
-  TG_ROOT: iac-template/terraform-hcl-standard/aws-cloud/bootstrap
+  TG_ROOT: terraform-hcl-standard/aws-cloud/bootstrap
   DEPLOY_ACTION: ${{ github.event.inputs.deploy_action || 'plan' }}
   TG_VERSION: 0.67.14
 
@@ -38,7 +38,7 @@ jobs:
           - S3: create remote state bucket (versioned + SSE + public access block)
           - DynamoDB: create state lock table with encryption + PITR
 
-          Terragrunt orchestrates state → lock → identity. Resource names and regions follow iac-template/terraform-hcl-standard/aws-cloud/config/accounts/bootstrap.yaml.
+          Terragrunt orchestrates state → lock → identity. Resource names and regions follow terraform-hcl-standard/aws-cloud/config/accounts/bootstrap.yaml.
           SUMMARY
 
       - uses: hashicorp/setup-terraform@v3
@@ -60,7 +60,7 @@ jobs:
       - name: Force Destroy Bootstrap Resources
         if: env.DEPLOY_ACTION == 'destroy'
         env:
-          CONFIG_PATH: iac-template/terraform-hcl-standard/aws-cloud/config/accounts/bootstrap.yaml
+          CONFIG_PATH: terraform-hcl-standard/aws-cloud/config/accounts/bootstrap.yaml
         run: |
           ./scripts/aws-bootstrap-force-destroy.sh
 

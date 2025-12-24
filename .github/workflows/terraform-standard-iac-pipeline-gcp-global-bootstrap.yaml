@@ -7,8 +7,8 @@ concurrency:
 on:
   push:
     paths:
-      - 'iac-template/terraform-hcl-standard/gcp-cloud/bootstrap-gcs/**'
-      - 'iac-template/terraform-hcl-standard/gcp-cloud/bootstrap-iam/**'
+      - 'terraform-hcl-standard/gcp-cloud/bootstrap-gcs/**'
+      - 'terraform-hcl-standard/gcp-cloud/bootstrap-iam/**'
       - '.github/workflows/terraform-standard-iac-pipeline-gcp-global-bootstrap.yaml'
   pull_request:
   workflow_dispatch:
@@ -19,7 +19,7 @@ on:
         default: plan
 
 env:
-  TF_WORKDIR: iac-template/terraform-hcl-standard/gcp-cloud
+  TF_WORKDIR: terraform-hcl-standard/gcp-cloud
   DEPLOY_ACTION: ${{ github.event.inputs.deploy_action || 'plan' }}
 
 jobs:
@@ -41,7 +41,7 @@ jobs:
           - Cloud Storage: create remote state bucket (versioned + uniform access + generation-based locking)
           - IAM: create Terraform bootstrap service account and bind elevated roles
 
-          Resource names and locations follow iac-template/terraform-hcl-standard/gcp-cloud/config/accounts/bootstrap.yaml.
+          Resource names and locations follow terraform-hcl-standard/gcp-cloud/config/accounts/bootstrap.yaml.
           SUMMARY
 
       - uses: hashicorp/setup-terraform@v3
@@ -64,7 +64,7 @@ jobs:
           import os
           from pathlib import Path
 
-          cfg_path = Path("iac-template/terraform-hcl-standard/gcp-cloud/config/accounts/bootstrap.yaml")
+          cfg_path = Path("terraform-hcl-standard/gcp-cloud/config/accounts/bootstrap.yaml")
           cfg = yaml.safe_load(cfg_path.read_text())
 
           env_path = Path(os.environ["GITHUB_ENV"])
@@ -159,7 +159,7 @@ jobs:
         if: env.DEPLOY_ACTION == 'apply'
         with:
           name: outputs-${{ matrix.target }}
-          path: iac-template/terraform-hcl-standard/gcp-cloud/outputs_${{ matrix.target }}.json
+          path: terraform-hcl-standard/gcp-cloud/outputs_${{ matrix.target }}.json
           retention-days: 30
 
   aggregate:

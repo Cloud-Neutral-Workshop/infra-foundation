@@ -26,7 +26,7 @@ Terragrunt `run-all` handles the ordering; no manual sequencing is required.
 ## How to Run with Terragrunt
 
 ```bash
-cd iac-template/terraform-hcl-standard/aws-cloud/bootstrap
+cd terraform-hcl-standard/aws-cloud/bootstrap
 
 # Plan everything in dependency order
 terragrunt run-all plan

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONFIG_PATH=${CONFIG_PATH:-iac-template/terraform-hcl-standard/aws-cloud/config/accounts/bootstrap.yaml}
+CONFIG_PATH=${CONFIG_PATH:-terraform-hcl-standard/aws-cloud/config/accounts/bootstrap.yaml}
 
 read TERRAFORM_USER ROLE_NAME STATE_BUCKET LOCK_TABLE AWS_REGION ACCOUNT_ID <<< "$(python - <<'PY'
 import yaml
 import os
 
-config_path = os.environ.get('CONFIG_PATH', 'iac-template/terraform-hcl-standard/aws-cloud/config/accounts/bootstrap.yaml')
+config_path = os.environ.get('CONFIG_PATH', 'terraform-hcl-standard/aws-cloud/config/accounts/bootstrap.yaml')
 
 with open(config_path, 'r') as f:
     cfg = yaml.safe_load(f)

@@ -3,7 +3,7 @@ name: Alicloud LandingZone Baseline
 on:
   push:
     paths:
-      - 'iac-template/terraform-hcl-standard/ali-cloud/**'
+      - 'terraform-hcl-standard/ali-cloud/**'
       - '.github/workflows/terraform-standard-iac-pipeline-alicloud-landingzone-baseline.yaml'
   pull_request:
     branches: [main]
@@ -21,7 +21,7 @@ on:
         default: 'true'
 
 env:
-  TF_WORKDIR: iac-template/terraform-hcl-standard/ali-cloud
+  TF_WORKDIR: terraform-hcl-standard/ali-cloud
   DEPLOY_ACTION: ${{ github.event.inputs.deploy_action || 'plan' }}
   ALICLOUD_REGION: ${{ secrets.ALICLOUD_REGION }}
 

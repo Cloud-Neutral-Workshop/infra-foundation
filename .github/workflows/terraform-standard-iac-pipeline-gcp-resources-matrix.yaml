@@ -3,8 +3,8 @@ name: IAC Pipeline GCP Resources Matrix
 on:
   push:
     paths:
-      - 'iac-template/terraform-hcl-standard/gcp-cloud/envs/dev-object/**'
-      - 'iac-template/terraform-hcl-standard/gcp-cloud/envs/dev-ec2/**'
+      - 'terraform-hcl-standard/gcp-cloud/envs/dev-object/**'
+      - 'terraform-hcl-standard/gcp-cloud/envs/dev-ec2/**'
       - '.github/workflows/terraform-standard-iac-pipeline-gcp-resources-matrix.yaml'
   workflow_dispatch:
     inputs:
@@ -14,7 +14,7 @@ on:
         default: 'true'
 
 env:
-  BASE_DIR: iac-template/terraform-hcl-standard/gcp-cloud/envs
+  BASE_DIR: terraform-hcl-standard/gcp-cloud/envs
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   DRY_RUN: ${{ github.event.inputs.dry_run || 'true' }}
 

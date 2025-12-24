@@ -23,7 +23,7 @@ BODY_HTML=$(cat <<EOF
   <h2>🚀 AWS LandingZone Baseline Rollout Completed</h2>
   <p>The baseline deployment for <b>LandingZone Minimal</b> has successfully finished.</p>
   <p><b>Environment:</b> dev-landingzone<br/>
-     <b>Workdir:</b> iac-template/terraform-standard</p>
+     <b>Workdir:</b> terraform-hcl-standard/aws-cloud/envs/dev-landingzone</p>
 
   <p>This includes:</p>
   <ul>

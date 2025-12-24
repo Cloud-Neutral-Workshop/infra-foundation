@@ -5,8 +5,8 @@ on:
   pull_request:
     paths:
       - '.github/workflows/iac-pipeline-aws-account-matrix.yaml'
-      - 'iac-template/terraform-hcl-standard/aws-cloud/component/vpc/**'
-      - 'iac-template/terraform-hcl-standard/aws-cloud/component/role/**'
+      - 'terraform-hcl-standard/aws-cloud/component/vpc/**'
+      - 'terraform-hcl-standard/aws-cloud/component/role/**'
   workflow_dispatch:
     inputs:
       deploy_action:
@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 env:
-  BASE_DIR: iac-template/terraform-hcl-standard/aws-cloud/component/
+  BASE_DIR: terraform-hcl-standard/aws-cloud/component/
   DEPLOY_ACTION: ${{ github.event.inputs.deploy_action || 'plan' }}
   CONFIG_FILES: |
     config/xzerolab/sit/aws-cloud/account/accounts.yaml
@@ -56,7 +56,7 @@ import os
 import sys
 from pathlib import Path
 
-utils_dir = Path("iac-template/terraform-hcl-standard/utils").resolve()
+utils_dir = Path("terraform-hcl-standard/utils").resolve()
 sys.path.insert(0, str(utils_dir))
 
 from config_loader import load_account_credentials

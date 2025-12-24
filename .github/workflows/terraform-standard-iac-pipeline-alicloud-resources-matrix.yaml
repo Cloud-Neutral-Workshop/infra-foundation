@@ -3,8 +3,8 @@ name: IAC Pipeline Alicloud Resources Matrix
 on:
   push:
     paths:
-      - 'iac-template/terraform-hcl-standard/ali-cloud/modules/**'
-      - 'iac-template/terraform-hcl-standard/ali-cloud/envs/dev/**'
+      - 'terraform-hcl-standard/ali-cloud/modules/**'
+      - 'terraform-hcl-standard/ali-cloud/envs/dev/**'
       - '.github/workflows/terraform-standard-iac-pipeline-alicloud-resources-matrix.yaml'
   workflow_dispatch:
     inputs:
@@ -14,7 +14,7 @@ on:
         default: 'true'
 
 env:
-  BASE_DIR: iac-template/terraform-hcl-standard/ali-cloud/envs
+  BASE_DIR: terraform-hcl-standard/ali-cloud/envs
   DRY_RUN: ${{ github.event.inputs.dry_run || 'true' }}
   ALICLOUD_REGION: ${{ secrets.ALICLOUD_REGION }}
 
