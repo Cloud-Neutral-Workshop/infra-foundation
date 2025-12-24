@@ -3,9 +3,9 @@ name: IAC Pipeline Vultr VPS Account/VPC Matrix
 on:
   push:
     paths:
-      - 'iac-template/terraform-hcl-standard/vultr-vps/modules/vpc/**'
-      - 'iac-template/terraform-hcl-standard/vultr-vps/modules/iam/**'
-      - 'iac-template/terraform-hcl-standard/vultr-vps/envs/dev/**'
+      - 'terraform-hcl-standard/vultr-vps/modules/vpc/**'
+      - 'terraform-hcl-standard/vultr-vps/modules/iam/**'
+      - 'terraform-hcl-standard/vultr-vps/envs/dev/**'
       - '.github/workflows/terraform-standard-iac-pipeline-vultr-account-matrix.yaml'
   workflow_dispatch:
     inputs:
@@ -15,7 +15,7 @@ on:
         default: 'true'
 
 env:
-  BASE_DIR: iac-template/terraform-hcl-standard/vultr-vps/envs
+  BASE_DIR: terraform-hcl-standard/vultr-vps/envs
   DRY_RUN: ${{ github.event.inputs.dry_run || 'true' }}
 
 jobs:

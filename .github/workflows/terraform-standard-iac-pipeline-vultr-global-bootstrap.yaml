@@ -7,9 +7,9 @@ concurrency:
 on:
   push:
     paths:
-      - 'iac-template/terraform-hcl-standard/vultr-vps/bootstrap-object-storage/**'
-      - 'iac-template/terraform-hcl-standard/vultr-vps/bootstrap-iam/**'
-      - 'iac-template/terraform-hcl-standard/vultr-vps/config/**'
+      - 'terraform-hcl-standard/vultr-vps/bootstrap-object-storage/**'
+      - 'terraform-hcl-standard/vultr-vps/bootstrap-iam/**'
+      - 'terraform-hcl-standard/vultr-vps/config/**'
       - '.github/workflows/terraform-standard-iac-pipeline-vultr-global-bootstrap.yaml'
   workflow_dispatch:
     inputs:
@@ -19,7 +19,7 @@ on:
         default: plan
 
 env:
-  TF_ROOT: iac-template/terraform-hcl-standard/vultr-vps
+  TF_ROOT: terraform-hcl-standard/vultr-vps
   DEPLOY_ACTION: ${{ github.event.inputs.deploy_action || 'plan' }}
 
 jobs:

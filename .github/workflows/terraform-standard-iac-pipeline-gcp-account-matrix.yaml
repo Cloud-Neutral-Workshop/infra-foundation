@@ -3,8 +3,8 @@ name: IAC Pipeline GCP (Account/Project Matrix)
 on:
   push:
     paths:
-      - 'iac-template/terraform-hcl-standard/gcp-cloud/envs/dev-vpc/**'
-      - 'iac-template/terraform-hcl-standard/gcp-cloud/envs/dev-role/**'
+      - 'terraform-hcl-standard/gcp-cloud/envs/dev-vpc/**'
+      - 'terraform-hcl-standard/gcp-cloud/envs/dev-role/**'
       - '.github/workflows/terraform-standard-iac-pipeline-gcp-account-matrix.yaml'
   workflow_dispatch:
     inputs:
@@ -14,7 +14,7 @@ on:
         default: 'true'
 
 env:
-  BASE_DIR: iac-template/terraform-hcl-standard/gcp-cloud/envs
+  BASE_DIR: terraform-hcl-standard/gcp-cloud/envs
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   DRY_RUN: ${{ github.event.inputs.dry_run || 'true' }}
 
